@@ -1,13 +1,31 @@
 import requests
 import json
-from pprint import pprint
+from urllib.parse import urlencode
+
+# Идентификатор приложения
+client_id = "fc5075a9ff294e74ab917fb92a46ed30"
+OAUTH_URL = "https://oauth.yandex.ru/authorize"
+CALLBACK_URL = "https://oauth.yandex.ru/verification_code"
+
+# Получение oauth
+OAUTH_DATA = {
+    "response_type": "token",
+    "client_id": client_id,
+    "redirect_uri": CALLBACK_URL
+}
+
+print("?".join(
+    (OAUTH_URL, urlencode(OAUTH_DATA))
+))
 
 TOKEN = input("Введите токен ")
+
 
 class User:
     def __init__(self, id):
         self.id = id
 
+    # Получаю информацию по фотографиям пользователя
     def user_photos(self):
         response = requests.get(
             "https://api.vk.com/method/photos.get",
@@ -24,14 +42,14 @@ class User:
         photo_json = response.json()
         return photo_json["response"]["items"]
 
-        # Создаю список с именами фото
-    def photo_name (self):
+    # Создаю список с именами фото
+    def photo_name(self):
         name = []
         # Название для фото делаю сразу состоящее из лайков и даты (название разных форматов напрягает)
         for elements in self.user_photos():
             likes = (str(elements["likes"]["count"]))
             date = (str(elements["date"]))
-            nick = likes+date
+            nick = likes + date
             name.append(nick)
         return name
 
@@ -48,6 +66,7 @@ class User:
         photo_dict = dict(zip(self.photo_name(), self.photo_link()))
         return photo_dict
 
+    # Создаю список с информацией по размерам фотографий для создания json
     def size_info(self):
         size_list = []
         for size in self.user_photos():
@@ -55,6 +74,7 @@ class User:
             size_list.append(type)
         return size_list
 
+    # Создаю json файл с информацией по фотографиям
     def preparing_for_json(self):
         dict_name_size = dict(zip(self.photo_name(), self.size_info()))
         list_json = []
@@ -66,8 +86,7 @@ class User:
         print("Файл JSON с информацией по фотографиям успешно создан")
 
 
-# 958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008
-mikhail = User(id = 552934290)
+mikhail = User(id=552934290)
 
 print("Все фото пользователя", mikhail.user_photos())
 print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
@@ -82,3 +101,27 @@ print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
 mikhail.preparing_for_json()
 print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
 
+header = {"Authorization": "OAuth AgAAAABDbZzbAADLW94rCjiptk_Muh1Ci04nKrI"}
+new_folder = requests.put("https://cloud-api.yandex.net:443/v1/disk/resources?path=profile_photo", headers=header)
+
+# Получение ссылок для загрузки фотографий профиля
+def download_links():
+    links_list = []
+    dictionry = mikhail.dict_name_link_photo()
+    for names, links in dictionry.items():
+        link_base = "https://cloud-api.yandex.net:443/v1/disk/resources/upload?path="
+        link_base = link_base + names + "&url=" + links
+        links_list.append(link_base)
+    return links_list
+
+print("Список ссылок для загрузки фото на диск", download_links())
+print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
+
+# Загрузка фотографий на Яндекс диск
+def load_on_disk():
+    for links in download_links():
+        load = requests.post(links, headers=header)
+    print("Все фото успешно загружены на диск!")
+
+load_on_disk()
+print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
