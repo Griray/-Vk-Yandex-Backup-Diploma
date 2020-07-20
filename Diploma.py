@@ -1,25 +1,9 @@
 import requests
 import json
 from urllib.parse import urlencode
-
-# Идентификатор приложения
-client_id = "fc5075a9ff294e74ab917fb92a46ed30"
-OAUTH_URL = "https://oauth.yandex.ru/authorize"
-CALLBACK_URL = "https://oauth.yandex.ru/verification_code"
-
-# Получение oauth
-OAUTH_DATA = {
-    "response_type": "token",
-    "client_id": client_id,
-    "redirect_uri": CALLBACK_URL
-}
-
-print("?".join(
-    (OAUTH_URL, urlencode(OAUTH_DATA))
-))
+import time
 
 TOKEN = input("Введите токен ")
-
 
 class User:
     def __init__(self, id):
@@ -40,17 +24,26 @@ class User:
             }
         )
         photo_json = response.json()
+        time.sleep(3)
         return photo_json["response"]["items"]
+
 
     # Создаю список с именами фото
     def photo_name(self):
         name = []
-        # Название для фото делаю сразу состоящее из лайков и даты (название разных форматов напрягает)
+        dates = []
         for elements in self.user_photos():
             likes = (str(elements["likes"]["count"]))
             date = (str(elements["date"]))
-            nick = likes + date
-            name.append(nick)
+            name.append(likes)
+            dates.append(date)
+        lenght = len(name)
+        for i in range(lenght - 1):
+            for j in range(i+1, lenght):
+                if name[i] == name[j]:
+                    name[i] += dates[i]
+                    name[j] += dates[j]
+                    continue
         return name
 
     # Ссылки на фото беру последние, они самые большие, поэтому использую "-1" чтобы брать ссылку с конца
@@ -86,7 +79,7 @@ class User:
         print("Файл JSON с информацией по фотографиям успешно создан")
 
 
-mikhail = User(id=552934290)
+mikhail = User(id=int(input("Введите ID профиля ")))
 
 print("Все фото пользователя", mikhail.user_photos())
 print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
