@@ -6,8 +6,11 @@ import time
 TOKEN = input("Введите токен ")
 
 class User:
+    username = input("Введите имя пользователя ")
+
     def __init__(self, id):
         self.id = id
+
 
     # Получаю информацию по фотографиям пользователя
     def user_photos(self):
@@ -20,11 +23,10 @@ class User:
                 "album_id": "profile",
                 "extended": 1,
                 "photo_sizes": 0,
-                "offset": 2
             }
         )
         photo_json = response.json()
-        time.sleep(3)
+        time.sleep(2)
         return photo_json["response"]["items"]
 
 
@@ -78,29 +80,27 @@ class User:
             json.dump(list_json, file, indent=2)
         print("Файл JSON с информацией по фотографиям успешно создан")
 
-
-mikhail = User(id=int(input("Введите ID профиля ")))
-
-print("Все фото пользователя", mikhail.user_photos())
-print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-print("Названия фотографий пользователя", mikhail.photo_name())
-print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-print("Ссылки на фотографии пользователя", mikhail.photo_link())
-print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-print("Словарь названий и ссылок на фотографии", mikhail.dict_name_link_photo())
-print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-print("Тип размеров фотографий", mikhail.size_info())
-print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-mikhail.preparing_for_json()
-print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-
-header = {"Authorization": "OAuth AgAAAABDbZzbAADLW94rCjiptk_Muh1Ci04nKrI"}
-new_folder = requests.put("https://cloud-api.yandex.net:443/v1/disk/resources?path=profile_photo", headers=header)
+if __name__ == "__main__":
+    username = User(id=int(input("Введите ID профиля ")))
+    header = {"Authorization": "OAuth AgAAAABDbZzbAADLW94rCjiptk_Muh1Ci04nKrI"}
+    new_folder = requests.put("https://cloud-api.yandex.net:443/v1/disk/resources?path=profile_photo", headers=header)
+    print("Все фото пользователя", username.user_photos())
+    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
+    print("Названия фотографий пользователя", username.photo_name())
+    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
+    print("Ссылки на фотографии пользователя", username.photo_link())
+    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
+    print("Словарь названий и ссылок на фотографии", username.dict_name_link_photo())
+    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
+    print("Тип размеров фотографий", username.size_info())
+    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
+    username.preparing_for_json()
+    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
 
 # Получение ссылок для загрузки фотографий профиля
 def download_links():
     links_list = []
-    dictionry = mikhail.dict_name_link_photo()
+    dictionry = username.dict_name_link_photo()
     for names, links in dictionry.items():
         link_base = "https://cloud-api.yandex.net:443/v1/disk/resources/upload?path="
         link_base = link_base + names + "&url=" + links
