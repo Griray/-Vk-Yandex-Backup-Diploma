@@ -1,6 +1,5 @@
 import requests
 import json
-from urllib.parse import urlencode
 import time
 
 TOKEN = input("Введите токен ")
@@ -9,6 +8,7 @@ class User:
 
     def __init__(self, id):
         self.id = id
+        self.attr = self.user_photos()
 
     # Получаю информацию по фотографиям пользователя
     def user_photos(self):
@@ -33,8 +33,8 @@ class User:
         name = []
         dates = []
         for elements in self.attr:
-            likes = (str(elements["likes"]["count"]))
-            date = (str(elements["date"]))
+            likes = str(elements["likes"]["count"])
+            date = str(elements["date"])
             name.append(likes)
             dates.append(date)
         lenght = len(name)
@@ -43,7 +43,6 @@ class User:
                 if name[i] == name[j]:
                     name[i] += dates[i]
                     name[j] += dates[j]
-                    continue
         return name
 
     # Ссылки на фото беру последние, они самые большие, поэтому использую "-1" чтобы брать ссылку с конца
@@ -96,9 +95,8 @@ def load_on_disk():
 
 if __name__ == "__main__":
     username = User(id=int(input("Введите ID профиля ")))
-    username.attr = dict()
-    username.attr = username.user_photos()
-    header = {"Authorization": "OAuth AgAAAABDbZzbAADLW94rCjiptk_Muh1Ci04nKrI"}
+    oauth_token = input("Введите OAUTH token ")
+    header = {"Authorization": oauth_token}
     new_folder = requests.put("https://cloud-api.yandex.net:443/v1/disk/resources?path=profile_photo", headers=header)
     print(username.user_photos())
     print(username.photo_name())
