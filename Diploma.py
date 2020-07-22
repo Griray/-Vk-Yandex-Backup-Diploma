@@ -6,11 +6,9 @@ import time
 TOKEN = input("Введите токен ")
 
 class User:
-    username = input("Введите имя пользователя ")
 
     def __init__(self, id):
         self.id = id
-
 
     # Получаю информацию по фотографиям пользователя
     def user_photos(self):
@@ -26,7 +24,7 @@ class User:
             }
         )
         photo_json = response.json()
-        time.sleep(2)
+        time.sleep(0.34)
         return photo_json["response"]["items"]
 
 
@@ -34,7 +32,7 @@ class User:
     def photo_name(self):
         name = []
         dates = []
-        for elements in self.user_photos():
+        for elements in self.attr:
             likes = (str(elements["likes"]["count"]))
             date = (str(elements["date"]))
             name.append(likes)
@@ -51,7 +49,7 @@ class User:
     # Ссылки на фото беру последние, они самые большие, поэтому использую "-1" чтобы брать ссылку с конца
     def photo_link(self):
         link_list = []
-        for reference in self.user_photos():
+        for reference in self.attr:
             link = reference["sizes"][-1]["url"]
             link_list.append(link)
         return link_list
@@ -64,7 +62,7 @@ class User:
     # Создаю список с информацией по размерам фотографий для создания json
     def size_info(self):
         size_list = []
-        for size in self.user_photos():
+        for size in self.attr:
             type = size["sizes"][-1]["type"]
             size_list.append(type)
         return size_list
@@ -80,35 +78,15 @@ class User:
             json.dump(list_json, file, indent=2)
         print("Файл JSON с информацией по фотографиям успешно создан")
 
-if __name__ == "__main__":
-    username = User(id=int(input("Введите ID профиля ")))
-    header = {"Authorization": "OAuth AgAAAABDbZzbAADLW94rCjiptk_Muh1Ci04nKrI"}
-    new_folder = requests.put("https://cloud-api.yandex.net:443/v1/disk/resources?path=profile_photo", headers=header)
-    print("Все фото пользователя", username.user_photos())
-    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-    print("Названия фотографий пользователя", username.photo_name())
-    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-    print("Ссылки на фотографии пользователя", username.photo_link())
-    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-    print("Словарь названий и ссылок на фотографии", username.dict_name_link_photo())
-    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-    print("Тип размеров фотографий", username.size_info())
-    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-    username.preparing_for_json()
-    print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
-
 # Получение ссылок для загрузки фотографий профиля
 def download_links():
     links_list = []
     dictionry = username.dict_name_link_photo()
     for names, links in dictionry.items():
-        link_base = "https://cloud-api.yandex.net:443/v1/disk/resources/upload?path="
+        link_base = "https://cloud-api.yandex.net:443/v1/disk/resources/upload?path=disk:/profile_photo/"
         link_base = link_base + names + "&url=" + links
         links_list.append(link_base)
     return links_list
-
-print("Список ссылок для загрузки фото на диск", download_links())
-print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
 
 # Загрузка фотографий на Яндекс диск
 def load_on_disk():
@@ -116,5 +94,17 @@ def load_on_disk():
         load = requests.post(links, headers=header)
     print("Все фото успешно загружены на диск!")
 
-load_on_disk()
-print("_-_-_-_-__-_-_-_-__-_-_-_-__-_-_-_-_")
+if __name__ == "__main__":
+    username = User(id=int(input("Введите ID профиля ")))
+    username.attr = dict()
+    username.attr = username.user_photos()
+    header = {"Authorization": "OAuth AgAAAABDbZzbAADLW94rCjiptk_Muh1Ci04nKrI"}
+    new_folder = requests.put("https://cloud-api.yandex.net:443/v1/disk/resources?path=profile_photo", headers=header)
+    print(username.user_photos())
+    print(username.photo_name())
+    print(username.photo_link())
+    print(username.dict_name_link_photo())
+    print(username.size_info())
+    username.preparing_for_json()
+    print(download_links())
+    load_on_disk()
