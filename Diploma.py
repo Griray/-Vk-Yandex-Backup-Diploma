@@ -8,7 +8,20 @@ class User:
 
     def __init__(self, id):
         self.id = id
-        self.attr = self.user_photos()
+
+    def id_nick(self):
+        response = requests.get(
+            "https://api.vk.com/method/users.get",
+            params={
+                "access_token": TOKEN,
+                "v": 5.89,
+                "user_ids": self.id,
+                "fields": "screen_name"
+            }
+        )
+        id_nick_json = response.json()
+        return id_nick_json["response"][0]["id"]
+
 
     # Получаю информацию по фотографиям пользователя
     def user_photos(self):
@@ -94,7 +107,12 @@ def load_on_disk():
     print("Все фото успешно загружены на диск!")
 
 if __name__ == "__main__":
-    username = User(id=int(input("Введите ID профиля ")))
+    username = User(id=input("Vk логин"))
+    if username.id.isdigit():
+        username.id = int(username.id)
+    else:
+        username.id = username.id_nick()
+    username.attr = username.user_photos()
     oauth_token = input("Введите OAUTH token ")
     header = {"Authorization": oauth_token}
     new_folder = requests.put("https://cloud-api.yandex.net:443/v1/disk/resources?path=profile_photo", headers=header)
