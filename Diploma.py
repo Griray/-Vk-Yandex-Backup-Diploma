@@ -1,6 +1,10 @@
 import requests
 import json
 import time
+from datetime import timedelta
+from tqdm import tqdm
+import datetime
+
 
 TOKEN = input("Введите токен ")
 
@@ -8,6 +12,7 @@ class User:
 
     def __init__(self, id):
         self.id = id
+
 
     def id_nick(self):
         response = requests.get(
@@ -47,7 +52,9 @@ class User:
         dates = []
         for elements in self.attr:
             likes = str(elements["likes"]["count"])
-            date = str(elements["date"])
+            date_timestap = elements["date"]
+            date = datetime.datetime.fromtimestamp(date_timestap)
+            date = date.strftime("%d.%m.%Y-%H:%M:%S")
             name.append(likes)
             dates.append(date)
         lenght = len(name)
@@ -106,8 +113,9 @@ def load_on_disk():
         load = requests.post(links, headers=header)
     print("Все фото успешно загружены на диск!")
 
+
 if __name__ == "__main__":
-    username = User(id=input("Vk логин"))
+    username = User(id=input("Введите VK логин или VK ID "))
     if username.id.isdigit():
         username.id = int(username.id)
     else:
@@ -116,11 +124,30 @@ if __name__ == "__main__":
     oauth_token = input("Введите OAUTH token ")
     header = {"Authorization": oauth_token}
     new_folder = requests.put("https://cloud-api.yandex.net:443/v1/disk/resources?path=profile_photo", headers=header)
-    print(username.user_photos())
-    print(username.photo_name())
-    print(username.photo_link())
-    print(username.dict_name_link_photo())
-    print(username.size_info())
-    username.preparing_for_json()
-    print(download_links())
-    load_on_disk()
+
+    with tqdm(total=100) as pbar:
+        print("Данные по фотографиям пользователя", username.user_photos())
+        time.sleep(0.34)
+        pbar.update(12.5)
+        print("Названия фотографий пользователя", username.photo_name())
+        time.sleep(0.34)
+        pbar.update(12.5)
+        print("Ссылки на фотографии пользователя", username.photo_link())
+        time.sleep(0.34)
+        pbar.update(12.5)
+        print("Словарь, где ключ - название фото, а значение - ссылка на фото", username.dict_name_link_photo())
+        time.sleep(0.34)
+        pbar.update(12.5)
+        print("Тип-размер фотографий максимального размера", username.size_info())
+        time.sleep(0.34)
+        pbar.update(12.5)
+        username.preparing_for_json()
+        time.sleep(0.34)
+        pbar.update(12.5)
+        print("Ссылки на загрузку фотографий на Я.Диск", download_links())
+        time.sleep(0.34)
+        pbar.update(12.5)
+        load_on_disk()
+        time.sleep(0.34)
+        pbar.update(12.5)
+
